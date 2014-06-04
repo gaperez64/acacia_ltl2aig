@@ -1,0 +1,5 @@
+(G( X(cancel=1) -> (X(X(go=1)) + X(X(X(go=1)))) )) ->			    
+    (G( X(req=1) -> (X(grant=1) + X(X(grant=1)) + X(X(X(grant=1))) )) *
+     G( grant=1 -> X(grant=0)) *				    
+     G( X(cancel=1) -> X(grant=0 U X(go=1))));
+

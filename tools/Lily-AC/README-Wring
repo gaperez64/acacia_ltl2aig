@@ -1,0 +1,55 @@
+# $Id: README-Wring,v 1.3 2006/06/23 11:58:38 bjobst Exp $
+
+The script procLTL.sh is a convenient wrapper to run ltl2aut.pl.
+The header of the script has minimal instructions on how to run it.
+
+The files in directory Test contain example formulae and automata.
+The syntax supported for LTL is explained in the header of LTL.pm.
+The syntax for the automata is the one used by Buechi::ToString.
+
+Obviously, one needs dot installed to use this stuff to its full
+extent.  (http://www.research.att.com/sw/tools/graphviz/)
+
+testRand.pl emulates the test-bed of [Daniel99], but can also read
+formulae from either a file or the command line.
+
+testSet.pl is a test script for the Set module.
+
+The algorithms are described in [Daniel99] and in [Somenz00].
+The algorithms for the complementing extension are described in [Gurumu03].
+
+@INCOLLECTION { Daniel99 ,
+        ADDRESS = "Berlin" ,
+        AUTHOR = "M. Daniele and F. Giunchiglia and M. Y. Vardi" ,
+        BOOKTITLE = "Eleventh Conference on Computer Aided Verification (CAV'99)" ,
+        EDITOR = "N. Halbwachs and D. Peled" ,
+        NOTE = "LNCS 1633" ,
+        PAGES = "249-260" ,
+        PUBLISHER = "Springer-Verlag" ,
+        TITLE = "Improved Automata Generation for Linear Time Temporal Logic" ,
+        YEAR = "1999"
+        }
+
+@INCOLLECTION { Somenz00 ,
+	ADDRESS = "Berlin" ,
+	AUTHOR = "F. Somenzi and R. Bloem" ,
+	BOOKTITLE = "Twelfth Conference on Computer Aided Verification (CAV'00)" ,
+	EDITOR = "E. A. Emerson and A. P. Sistla" ,
+	MONTH =   jul  ,
+	PAGES = "248-263" ,
+	PUBLISHER = "Springer-Verlag" ,
+	TITLE = {Efficient {B\"uchi} Automata from {LTL} Formulae} ,
+	YEAR = "2000"
+	}
+
+@INPROCEEDINGS { Gurumu03 ,
+        ADDRESS = "Berlin" ,
+        AUTHOR = "S. Gurumurthy and O. Kupferman and F. Somenzi and M. Y. Vardi" ,
+        BOOKTITLE = "Correct Hardware Design and Verification Methods (CHARME'03)" ,
+        MONTH =   oct  ,
+        NOTE = "LNCS 2860" ,
+        PAGES = "96-110" ,
+        PUBLISHER = "Springer-Verlag" ,
+        TITLE = {On Complementing Nondeterministic {B\"uchi} Automata} ,
+        YEAR = "2003"
+        }

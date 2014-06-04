@@ -1,0 +1,106 @@
+# $Id: README-Lily,v 1.2 2006/10/25 08:45:10 bjobst Exp $
+
+Lily is a linear-logic synthesizer that takes an LTL formula and a
+partition of the atomic proposition into input and output signals and
+provides a functionally correct design that fulfills the given
+formula.  The generated design is a state machine given as VERILOG
+module and as labeled directed graph in DOT format.  Use dot
+(http://www.research.att.com/sw/tools/graphviz/) to translated the DOT
+format.
+
+
+How to install Lily
+-------------------
+Lily requires Perl 5.8.8 or higher.
+You just have to set the perl library path and the search path correctly, e.g.,
+setenv LILY /usr/local/wring-lily
+setenv PERL5LIB ${LILY}:${PERL5LIB}
+setenv PATH ${LILY}:${PATH}
+
+
+How to run Lily
+---------------
+You need two files:
+1) A specification file holding the LTL formula
+2) A partition file holding the I/O-partition of the atomic propositions
+
+The syntax supported for LTL is explained in the header of LTL.pm.  In
+contract to formulae for Wring 1.1.0, formulae for Lily can range over
+several lines but have to end with a semicolon.  The directory demo
+holds example files.
+
+The syntax of the partition file is very easy.  There are just the two
+keywords .inputs and .outputs followed by a list of atomic
+propositions, e.g.,
+.inputs in1 in2 in3
+.outputs out1 out2 out3
+See directory demo for more examples.
+
+
+Lily is an extension to Wring. All command line options valid in Wring 
+are valid in Lily as well, since Lily uses Wring to construct a Buechi 
+automaton in its first step.
+
+With the command line options inherited from Wring the user can
+determine the name of the specification file, the prefix for the
+output files, verbosity, and parameters for the construction of
+Buechi automata provided by Wring and used in Lily.
+
+Lily has new command line options to invoke the synthesis
+process, to define the name of the partition file, to specify an
+output directory, to verify the generated design, and to switch
+various optimizations on and off.  By default all optimizations are
+turned on.  The user need not care about those options. 
+
+If the specification is stored in the file tl.ltl and the
+partition is stored in the file tl.part the simplest way to
+call Lily is:
+
+lily.pl -syn tl.part -ltl tl.ltl
+
+With option -syndir you can specify a directory in which all result
+files are stored, e.g.,
+lily.pl -syn tl.part -ltl tl.ltl -syndir trafficlight
+
+By default Lily generates two output files, which are
+stored in the current directory or in the new directory trafficlight
+depending on the chosen command above.  Their names are:
+ltl2vl-verilog.v
+ltl2vl-synthesis.dot
+
+If the specification is realizable ltl2vl-verilog.v holds the
+Verilog module of the generated design.  The state diagram of the
+generated design is stored in ltl2vl-synthesis.dot.  If the
+specification is not realizable both files state that the given
+specification is unrealizable.  The prefix 'ltl2vl' can
+be replaced by a user defined prefix with the option -p.
+
+
+
+Connection between Wring and Lily
+---------------------------------
+Lily require Wring-1.1.0 and part of its extension to complement
+Buechi automata.  Lily is shipped with all necessary files.
+
+Lily exists of the following packages:
+AlternatingTree.pm
+BuechiALTree.pm
+CoBuechiTree.pm
+LTL2VL.pm
+Sugar.pm
+UniqSet.pm
+Utils.pm
+
+It extends the following packages of Wring-1.1.0:
+Buechi.pm
+Cover.pm
+Set.pm
+Pair.pm
+
+It uses the following packages of Wring-Complementing:
+BuechiAL.pm
+Game.pm
+DGame.pm
+
+The lily executable (script file) is an extension of 
+ltl2aut.pl and is called lily.pl.

@@ -1,0 +1,12 @@
+# $Id: README,v 1.3 2006/06/23 11:56:13 bjobst Exp $
+
+Content of the package:
+-----------------------
+
+This package includes Wring (an LTL to Buechi translator) by Fabio
+Somenzi <Fabio@Colorado.EDU>, an extension to complement Buechi
+automata by Sankar Gurumurthy <gurumurt@Colorado.edu>, and Lily (a
+linear-logic synthesizer) by Barbara Jobstmann <bjobst@ist.tugraz.at>.
+
+See README-Wring and REAMDE-Lily for details about Wring with the extension to
+complement Buechi automata and Lily.

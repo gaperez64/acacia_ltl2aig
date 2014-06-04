@@ -1,0 +1,29 @@
+$Id: NEWS,v 1.2 2005/09/26 11:44:23 bjobst Exp $
+
+New in Wring 1.2.0
+
+* Found a work-around for the bug in Perl versions 5.6.0 and higher.
+
+* Added a few rewriting rules.
+
+* Improved testRand.pl.
+
+
+New in Wring 1.1.0
+
+* A couple of bugs fixed.  (Thanks to Heikki Tauriainen!) Code cleaned
+  up a bit.
+
+* New option -auto allows Wring to read a Buechi automaton
+  specified in the format written by Buechi::ToString.
+
+* New option -mon allows Wring to write the optimized Buechi
+  automaton as a Verilog monitor.  The Verilog monitor is a module
+  whose primary inputs are the atomic propositions appearing in the
+  LTL formula.
+
+* WARNING: Recent versions of Perl (including 5.6.0, 5.6.1, and 5.7.1)
+  have a bug that sometimes causes the perl interpreter to crash when
+  running Wring.  The Perl maintainers have been notified.  In the
+  meanwhile, if you are considering upgrading from, say, 5.005, you
+  may want to keep this in mind.

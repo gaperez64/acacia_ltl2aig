@@ -28,7 +28,7 @@ EXIT_STATUS_REALIZABLE = 10
 EXIT_STATUS_UNREALIZABLE = 20
 EXIT_STATUS_UNKNOWN = 30
 debug = False
-log = True
+log = False
 
 
 def DBG_MSG(s):
@@ -540,14 +540,15 @@ def main(formula_file, part_file, k, args):
     (solved, is_real) = acacia_plus.main(arg_list)
     LOG_MSG("acacia+ replied (solved, realizability) = (" +
             str(solved) + ", " + str(is_real) + ")")
+    suffix = "comp" + str(k) if args.compositional else str(k)
     if solved and is_real:
-        file_name = formula_file[:-4] + "_" + str(k) + "_REAL.aag"
+        file_name = formula_file[:-4] + "_" + suffix + "_REAL.aag"
         ret = EXIT_STATUS_REALIZABLE
     elif solved and not is_real:
-        file_name = formula_file[:-4] + "_" + str(k) + "_UNREAL.aag"
+        file_name = formula_file[:-4] + "_" + suffix + "_UNREAL.aag"
         ret = EXIT_STATUS_UNREALIZABLE
     else:
-        file_name = formula_file[:-4] + "_" + str(k) + "_UNREAL.aag"
+        file_name = formula_file[:-4] + "_" + suffix + "_UNREAL.aag"
         ret = EXIT_STATUS_UNKNOWN
     # FINALLY: dump the AIG
     write_aig(inputs, outputs, latch_net,

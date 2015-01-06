@@ -72,18 +72,44 @@ def read_partition(partition_file):
 
 
 # reads ltl file in Wring format and returns the ltl formula
-def read_formula(filename):
+def read_formulae(filename, compositional=True):
     f = open(filename, "r")
     spec_names = []  # list of specifications names
     spec_names.append("u0")
     form = ""
+    forms = []
     l = f.readline()
     while l != "":
-        if not l.startswith("#") and not l.startswith("[spec_unit") and\
-                not l.startswith("group_order"):
-            form += l
-        l = f.readline()
-    return form
+        if not compositional:
+            forms.append(form)
+            if not l.startswith("#") and not l.startswith("[spec_unit") and\
+                    not l.startswith("group_order"):
+                form += l
+            l = f.readline()
+        else:  # compositional approach
+            # Find first line of ######...
+            while not l.startswith("[spec_unit") and l != "":
+                l = f.readline()
+            if l == "":  # end of file -> only one spec
+                print "Formula problem: [spec_unit name] pattern " +\
+                      "not found! You probably chose a compositional " +\
+                      "construction and there is only one specification."
+                exit(0)
+            spec_names.append(l.split(']')[0][1:])
+            l = f.readline()  # first line of current spec
+            # Get the spec
+            cur_formula = ""
+            while not l.startswith("[spec_unit") and\
+                    not l.startswith("group_order") and l != "":
+                if not l.startswith("#"):
+                    cur_formula += l
+                l = f.readline()
+            forms.append(cur_formula)
+            # If this is the last spec, the group_order method follows
+            if l.startswith("group_order"):
+                break
+    DBG_MSG("Read specs: " + str(spec_names))
+    return forms
 
 
 def negate_ltl2ba(formula):
@@ -334,7 +360,7 @@ def write_aig(inputs, outputs, latches, error, file_name):
     # the boolnet data structure makes sure the following invariant holds:
     # v.neg => v is a literal, therefore v.is_or() != v.neg is equivalent to
     # v.is_or() | v.neg
-    for (l, net)in sorted(latches.items()):
+    for (l, net) in sorted(latches.items()):
         var_map[boolnet.BoolNet(l).index] = l
 
     for (l, net) in sorted(latches.items()):
@@ -387,8 +413,9 @@ def write_aig(inputs, outputs, latches, error, file_name):
 
 
 ############################# MAIN ##########################
-
-def translate2aig(inputs, outputs, k, states, buchi_states, edges):
+# NOTE: var_offset is applied to latches and gates but not to inputs/outputs
+def translate2aig(inputs, outputs, k, states, buchi_states,
+                  var_offset, edges):
     DBG_MSG("k = " + str(k))
     DBG_MSG("inputs: " + str(inputs))
     DBG_MSG("outputs: " + str(outputs))
@@ -414,6 +441,7 @@ def translate2aig(inputs, outputs, k, states, buchi_states, edges):
         free_var += 2
     # reserve latches X counters, and negations
     # and get the initial node
+    free_var += var_offset
     state_latch_map = dict()
     latch_net = dict()
     init_node = None
@@ -461,7 +489,7 @@ def translate2aig(inputs, outputs, k, states, buchi_states, edges):
     for u in states:
         error_net |= boolnet.BoolNet(state_latch_map[(u, k + 1)])
     # RETURN latchnet and errornet
-    return (latch_net, error_net)
+    return (latch_net, error_net, free_var)
 
 
 def test_write():
@@ -480,26 +508,33 @@ def test_write():
              (("s1", "s1"), "i0 && o0"),
              (("s2", "initial"), "(1)")]
     (latch_net,
-     error_net) = translate2aig(inputs, outputs, k,
-                                states, buchi_states,
-                                edges)
+     error_net,
+     var_offset) = translate2aig(inputs, outputs, k,
+                                 states, buchi_states,
+                                 0, edges)
     write_aig(inputs, outputs, latch_net, error_net, file_name)
 
 
-def main(formula_file, part_file, k):
+def main(formula_file, part_file, k, args):
     # STEP 0: read partition, ltl formula and create BA
     (inputs, outputs) = read_partition(part_file)
-    wring_formula = read_formula(formula_file)
-    ltl2ba_formula = wring_to_ltl2ba(wring_formula, inputs, outputs)
-    formula = negate_ltl2ba(ltl2ba_formula)
-    DBG_MSG("negated formula: " + str(formula))
-    (automata, buchi_states) = construct_automata(formula)
-    # STEP 1: translate aig
-    (latch_net,
-     error_net) = translate2aig(inputs, outputs, k, automata.nodes(),
-                                buchi_states,
-                                [(e, automata.edge_label(e)) for e in
-                                 automata.edges()])
+    wring_formulae = read_formulae(formula_file, args.compositional)
+    var_offset = 0
+    latch_net = dict()
+    error_net = boolnet.BoolNet(False)
+    for wring_formula in wring_formulae:
+        ltl2ba_formula = wring_to_ltl2ba(wring_formula, inputs, outputs)
+        formula = negate_ltl2ba(ltl2ba_formula)
+        DBG_MSG("negated formula: " + str(formula))
+        (automata, buchi_states) = construct_automata(formula)
+        # STEP 1: translate aig
+        (ln, en,
+         var_offset) = translate2aig(inputs, outputs, k, automata.nodes(),
+                                     buchi_states, var_offset,
+                                     [(e, automata.edge_label(e)) for e in
+                                      automata.edges()])
+        latch_net.update(ln)
+        error_net |= en
     # STEP 2: call Acacia+ to see if this is realizable or not
     arg_list = ["--ltl", formula_file,
                 "--part", part_file,
@@ -509,6 +544,9 @@ def main(formula_file, part_file, k):
                 "--crit", "OFF",
                 "--opt", "none",
                 "--check", "REAL"]
+    if args.compositional:
+        arg_list.extend(["--syn", "COMP",
+                         "--nbw", "COMP"])
     (solved, is_real) = acacia_plus.main(arg_list)
     DBG_MSG("acacia+ replied (solved, realizability) = (" +
             str(solved) + ", " + str(is_real) + ")")
@@ -539,6 +577,9 @@ if __name__ == "__main__":
     parser.add_argument("-d", dest="debug", default=False,
                         action="store_const", const=True,
                         help="print debug information")
+    parser.add_argument("-c", dest="compositional", default=False,
+                        action="store_const", const=True,
+                        help="construct formulas compositionally")
     args = parser.parse_args()
     debug = args.debug
-    exit(main(args.formula, args.part, args.k))
+    exit(main(args.formula, args.part, args.k, args))

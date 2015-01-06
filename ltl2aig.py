@@ -28,11 +28,17 @@ EXIT_STATUS_REALIZABLE = 10
 EXIT_STATUS_UNREALIZABLE = 20
 EXIT_STATUS_UNKNOWN = 30
 debug = False
+log = True
 
 
 def DBG_MSG(s):
     if debug:
         print "[DBG] " + str(s)
+
+
+def LOG_MSG(s):
+    if log:
+        print "[LOG] " + str(s)
 
 
 # reads a file and returns a list of inputs and outputs
@@ -72,16 +78,14 @@ def read_partition(partition_file):
 
 
 # reads ltl file in Wring format and returns the ltl formula
-def read_formulae(filename, compositional=True):
+def read_formulae(filename, compositional):
     f = open(filename, "r")
     spec_names = []  # list of specifications names
-    spec_names.append("u0")
     form = ""
     forms = []
     l = f.readline()
     while l != "":
         if not compositional:
-            forms.append(form)
             if not l.startswith("#") and not l.startswith("[spec_unit") and\
                     not l.startswith("group_order"):
                 form += l
@@ -108,7 +112,12 @@ def read_formulae(filename, compositional=True):
             # If this is the last spec, the group_order method follows
             if l.startswith("group_order"):
                 break
+    if not compositional:
+        spec_names.append("u0")
+        forms.append(form)
+    LOG_MSG(str(len(spec_names)) + " specs read")
     DBG_MSG("Read specs: " + str(spec_names))
+    assert len(forms) == len(spec_names)
     return forms
 
 
@@ -416,18 +425,18 @@ def write_aig(inputs, outputs, latches, error, file_name):
 # NOTE: var_offset is applied to latches and gates but not to inputs/outputs
 def translate2aig(inputs, outputs, k, states, buchi_states,
                   var_offset, edges):
-    DBG_MSG("k = " + str(k))
+    LOG_MSG("k = " + str(k))
+    LOG_MSG(str(len(inputs)) + " inputs")
     DBG_MSG("inputs: " + str(inputs))
+    LOG_MSG(str(len(outputs)) + " outputs")
     DBG_MSG("outputs: " + str(outputs))
 
     # STEP 1: check number of states
     n_nodes = len(states)
-    DBG_MSG("state count in universal co-buchi automata: " + str(n_nodes))
+    LOG_MSG(str(n_nodes) + " states")
     DBG_MSG("states: " + str(states))
 
     # STEP 2: assign inputs and outputs a number
-    # note that the outputs have to be extended to include signals for
-    # environment to chose a specific state that the game was at
     free_var = 2
     input_map = dict()
     input_map["F"] = 0
@@ -441,7 +450,9 @@ def translate2aig(inputs, outputs, k, states, buchi_states,
         free_var += 2
     # reserve latches X counters, and negations
     # and get the initial node
-    free_var += var_offset
+    if var_offset is not None:
+        assert free_var <= var_offset
+        free_var = var_offset
     state_latch_map = dict()
     latch_net = dict()
     init_node = None
@@ -453,9 +464,11 @@ def translate2aig(inputs, outputs, k, states, buchi_states,
             state_latch_map[(u, i)] = free_var
             latch_net[free_var] = boolnet.BoolNet(False)
             free_var += 2
+    LOG_MSG(str(len(buchi_states)) + " buchi states")
     DBG_MSG("buchi states: " + str(buchi_states))
+    LOG_MSG(str(len(edges)) + " edges")
 
-    # STEP 2: create the boolean network rep. of automata
+    # STEP 3: create the boolean network rep. of automata
     # first transition is to let the 0 config go directly to the initial state
     all_off = boolnet.BoolNet(True)
     for latch in state_latch_map.values():
@@ -484,7 +497,7 @@ def translate2aig(inputs, outputs, k, states, buchi_states,
                     boolnet.BoolNet(state_latch_map[(u, i)]) &
                     input_net)
 
-    # STEP 3: create the error net
+    # STEP 4: create the error net
     error_net = boolnet.BoolNet(False)
     for u in states:
         error_net |= boolnet.BoolNet(state_latch_map[(u, k + 1)])
@@ -492,34 +505,11 @@ def translate2aig(inputs, outputs, k, states, buchi_states,
     return (latch_net, error_net, free_var)
 
 
-def test_write():
-    k = 1
-    inputs = ["i0"]
-    outputs = ["o0"]
-    file_name = "test.aag"
-    states = ["initial", "s0", "s1", "s3", "s2"]
-    buchi_states = states[1:4]
-    edges = [(("initial", "s0"), "i0"),
-             (("initial", "s1"), "!i0"),
-             (("initial", "s2"), "(1)"),
-             (("s0", "s0"), "i0 && o0"),
-             (("s0", "s3"), "i0 && !o0"),
-             (("s3", "s3"), "!i0 && o0"),
-             (("s1", "s1"), "i0 && o0"),
-             (("s2", "initial"), "(1)")]
-    (latch_net,
-     error_net,
-     var_offset) = translate2aig(inputs, outputs, k,
-                                 states, buchi_states,
-                                 0, edges)
-    write_aig(inputs, outputs, latch_net, error_net, file_name)
-
-
 def main(formula_file, part_file, k, args):
     # STEP 0: read partition, ltl formula and create BA
     (inputs, outputs) = read_partition(part_file)
     wring_formulae = read_formulae(formula_file, args.compositional)
-    var_offset = 0
+    var_offset = None
     latch_net = dict()
     error_net = boolnet.BoolNet(False)
     for wring_formula in wring_formulae:
@@ -548,7 +538,7 @@ def main(formula_file, part_file, k, args):
         arg_list.extend(["--syn", "COMP",
                          "--nbw", "COMP"])
     (solved, is_real) = acacia_plus.main(arg_list)
-    DBG_MSG("acacia+ replied (solved, realizability) = (" +
+    LOG_MSG("acacia+ replied (solved, realizability) = (" +
             str(solved) + ", " + str(is_real) + ")")
     if solved and is_real:
         file_name = formula_file[:-4] + "_" + str(k) + "_REAL.aag"
@@ -574,12 +564,8 @@ if __name__ == "__main__":
     parser.add_argument("k", metavar="k", type=int,
                         help="k for which the corresponding k-coBuchi game " +
                              "will be constructed")
-    parser.add_argument("-d", dest="debug", default=False,
-                        action="store_const", const=True,
-                        help="print debug information")
     parser.add_argument("-c", dest="compositional", default=False,
                         action="store_const", const=True,
                         help="construct formulas compositionally")
     args = parser.parse_args()
-    debug = args.debug
     exit(main(args.formula, args.part, args.k, args))

@@ -17,36 +17,36 @@ function translate {
   # it was realizable
   if [[ $exit_code == 10 ]]; then
     echo "REAL"
-    python ${synth_tool} $@ "${folder}${common_pref}${i}${common_suff}_comp${k_bound}_REAL.aag"
-    synth=$?
+    #python ${synth_tool} $@ "${folder}${common_pref}${i}${common_suff}_comp${k_bound}_REAL.aag"
+    #synth=$?
     expect=10
     mv "${folder}${common_pref}${i}${common_suff}_comp${k_bound}_REAL.aag" ${result_folder}
   fi
   # it was unrealizable
   if [[ $exit_code == 20 ]]; then
     echo "UNREAL"
-    python ${synth_tool} $@ "${folder}${common_pref}${i}${common_suff}_comp${k_bound}_UNREAL.aag"
-    synth=$?
+    #python ${synth_tool} $@ "${folder}${common_pref}${i}${common_suff}_comp${k_bound}_UNREAL.aag"
+    #synth=$?
     expect=20
     mv "${folder}${common_pref}${i}${common_suff}_comp${k_bound}_UNREAL.aag" ${result_folder}
   fi
   # acacia did not conclude anything with the negated formula
   if [[ $exit_code == 30 ]]; then
     echo "??? assume UNREAL"
-    python ${synth_tool} $@ "${folder}${common_pref}${i}${common_suff}_comp${k_bound}_UNREAL.aag"
-    synth=$?
+    #python ${synth_tool} $@ "${folder}${common_pref}${i}${common_suff}_comp${k_bound}_UNREAL.aag"
+    #synth=$?
     expect=20
     mv "${folder}${common_pref}${i}${common_suff}_comp${k_bound}_UNREAL.aag" ${result_folder}
   fi
   # check if absynthe and acacia agree
-  if [[ $synth != $expect ]]; then
-    echo "ERROR: realizability results (${synth} != ${expect}) do not match!"
-    exit
-  fi
+  #if [[ $synth != $expect ]]; then
+  #  echo "ERROR: realizability results (${synth} != ${expect}) do not match!"
+  #  exit
+  #fi
 }
 
 # translate all examples for the following k_bounds
-for k_bound in `seq 1 5`;
+for k_bound in `seq 1 7`;
 do
 #folder="examples/demo-lily/"
 #common_pref="demo-v"

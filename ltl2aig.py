@@ -421,7 +421,7 @@ def write_aig(inputs, outputs, latches, error, file_name):
     f.close()
 
 
-############################# MAIN ##########################
+# ############################ MAIN ##########################
 # NOTE: var_offset is applied to latches and gates but not to inputs/outputs
 def translate2aig(inputs, outputs, k, states, buchi_states,
                   var_offset, edges):

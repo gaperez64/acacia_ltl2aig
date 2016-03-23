@@ -15,6 +15,7 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+import sys
 import subprocess
 import re
 
@@ -228,10 +229,12 @@ def construct_automata(formulas_list, spec_names, verbosity, tool):
     for formula in formulas_list:
         try:
             controled_print("spec " + spec_names[formula_index] + "...", [ALLTEXT, MINTEXT], verbosity)
+            controled_print("executing: " + str(tool_cmd + [formula]), [ALLTEXT, MINTEXT], verbosity)
             out = subprocess.Popen(tool_cmd+[formula],stdout=subprocess.PIPE)
             (automata,err) = out.communicate()
         except:
-            print tool + " not found! Don't forget to install it and set the " + tool + "_PATH static variable in file constants.py."
+            print "Unexpected error:", sys.exc_info()[0]
+            print "Don't forget to install " + tool + " and set the " + tool + "_PATH static variable in file constants.py."
             exit(0)
     
         controled_print(" done\n", [ALLTEXT, MINTEXT], verbosity)

@@ -48,13 +48,13 @@ function translate {
 # translate all examples for the following k_bounds
 for k_bound in `seq 1 7`;
 do
-folder="examples/demo-lily/"
-common_pref="demo-v"
-common_suff=""
-for i in `seq 1 25`;
-do
-  translate
-done
+#folder="examples/demo-lily/"
+#common_pref="demo-v"
+#common_suff=""
+#for i in `seq 1 25`;
+#do
+#  translate
+#done
 
 # translate all the buffer examples using the given k_bound
 folder="examples/buffer/"
@@ -83,39 +83,39 @@ do
 done
 
 # translate SRA examples
-folder="examples/SRA/"
-common_pref="sra_"
-common_suff=""
-for i in 2 3;
-do
-  translate
-done
+#folder="examples/SRA/"
+#common_pref="sra_"
+#common_suff=""
+#for i in 2 3;
+#do
+#  translate
+#done
 
 # translate LTL2DBA examples
-folder="examples/LTL2DBA/"
-common_pref="ltl2dba_0"
-common_suff=""
-for i in `seq 4 9`;
-do
-  translate
-done
-common_pref="ltl2dba_"
-for i in `seq 10 27`;
-do
-  translate
-done
+#folder="examples/LTL2DBA/"
+#common_pref="ltl2dba_0"
+#common_suff=""
+#for i in `seq 4 9`;
+#do
+#  translate
+#done
+#common_pref="ltl2dba_"
+#for i in `seq 10 27`;
+#do
+#  translate
+#done
 
 # translate LTL2DBA examples
-folder="examples/LTL2DPA/"
-common_pref="ltl2dpa_0"
-common_suff=""
-for i in `seq 1 9`;
-do
-  translate
-done
-common_pref="ltl2dpa_"
-for i in `seq 10 23`;
-do
-  translate
-done
+#folder="examples/LTL2DPA/"
+#common_pref="ltl2dpa_0"
+#common_suff=""
+#for i in `seq 1 9`;
+#do
+#  translate
+#done
+#common_pref="ltl2dpa_"
+#for i in `seq 10 23`;
+#do
+#  translate
+#done
 done # and the k_bound loop
